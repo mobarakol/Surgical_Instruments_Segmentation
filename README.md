@@ -11,7 +11,7 @@ Validation Set: 7,8
 
 [Trained model in type wise segmentation](https://drive.google.com/file/d/10s1NQhbJsEUDsrax7MvQWQUwOwSucsDi/view?usp=sharing) 
 
-### Architectures
+### Architectures:
 <img align='center' style="border-color:gray;border-width:2px;border-style:dashed"   src='figures/Proposed_Architecture.png' padding='5px' height="500px"></img>
 
 
