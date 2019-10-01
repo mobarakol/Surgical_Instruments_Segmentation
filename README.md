@@ -3,7 +3,7 @@ This repository is the implementation of the paper [Real-Time Instrument Segment
 
 
 [MICCAI Surgical Instrument Segmentation Challenge 2017](https://endovissub2017-roboticinstrumentsegmentation.grand-challenge.org/)
-MICCAI 2017 Surgical Instrument Segmentation Challenge dataset is used to conduct all the experiments in this paper. The dataset is split into train and validation set as:
+dataset is used to conduct all the experiments in this paper. The dataset is split into train and validation set as:
 
 Train Set: 1,2,3,4,5,6
 
