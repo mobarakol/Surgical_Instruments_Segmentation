@@ -23,7 +23,6 @@ args = {
     'lr': 0.0001,
     'lr_decay': 0.9,
     'w_decay': 1e-4,
-    'opt': 'adam',
     'ckpt_dir': 'ckpt/instruments_type/'
 }
 
@@ -39,7 +38,9 @@ class CrossEntropyLoss2d(torch.nn.Module):
         return self.nll_loss(F.log_softmax(inputs), targets)
 
 if __name__ == '__main__':
-    img_dir = 'instruments_data2017/train_mine.txt'
+    #img_dir = 'instruments_data2017/train_mine.txt'
+    #img_dir = '/media/mmlab/data/Datasets/Instruments/2017/train_mine.txt'
+    img_dir = '/media/mobarak/data/Datasets/Instruments/2017/train_mine.txt'
     dataset = instruDataset(img_dir=img_dir)
     train_loader = DataLoader(dataset=dataset, batch_size=args['batch_size'], shuffle=True, num_workers=2,
                               drop_last=True)

@@ -14,7 +14,6 @@ class conv2DBN(nn.Module):
             conv2d = nn.Conv2d( int(inc), int(outc), kernel_size=k_size, padding=padding, stride=stride,
                 bias=bias, dilation=1,)
 
-
         self.cb_unit = nn.Sequential(conv2d, nn.BatchNorm2d(int(outc)))
 
     def forward(self, inputs):
@@ -35,19 +34,14 @@ class multiresolutionFeatureFusion(nn.Module):
         self.tp_conv2 = nn.ConvTranspose2d(32, n_classes, 2, 2, 0)
         self.lsm = nn.LogSoftmax(dim=1)
         self.mff_class = nn.Sequential( self.decoder4_x2, self.conv2_x2, self.lsm)
-
-        self.high_convbn = conv2DBN(high_inc, outc, 3, stride=1, padding=2, bias=bias,
-            dilation=2, with_bn=with_bn, )
-
-        self.low_convbn = conv2DBN( low_inc, outc, 1, stride=2, padding=0, bias=bias,
-            with_bn=with_bn,)
+        self.high_convbn = conv2DBN(high_inc, outc, 3, stride=1, padding=2, bias=bias, dilation=2, with_bn=with_bn, )
+        self.low_convbn = conv2DBN( low_inc, outc, 1, stride=2, padding=0, bias=bias, with_bn=with_bn,)
 
     def forward(self, x_low, x_high):
         low_fm = self.low_convbn(x_low)
         high_fm = self.high_convbn(x_high)
         high_fused_fm = F.relu(low_fm + high_fm, inplace=True)
         mff_cls = self.mff_class(high_fused_fm)
-
         return high_fused_fm, mff_cls
 
 
@@ -71,7 +65,6 @@ class Decoder(nn.Module):
         x = self.conv1(x)
         x = self.deconv(x)
         x = self.conv2(x)
-
         return x
 
 
@@ -102,13 +95,11 @@ class InstrumentsMFF(nn.Module):
 
     def __init__(self, n_classes=21):
         """
-        Model Initialization
+        Initialization
         """
         super(InstrumentsMFF, self).__init__()
         self.spp = spatialPyramidPooling(pool_sizes=[16, 8, 4, 2])
-
         self.mff_sub24_x2 = multiresolutionFeatureFusion(n_classes, 128, 512, 512, with_bn=True )
-
         base = resnet.resnet18(pretrained=True)
         self.in_block = nn.Sequential(base.conv1, base.bn1, base.relu, base.maxpool)
         self.encoder1 = base.layer1

@@ -61,9 +61,9 @@ def spec_sens(pred, gt):
 
 
 if __name__ == '__main__':
-    img_dir = '/media/mmlab/data/Datasets/Instruments/2017/test_mine.txt'
-    #img_dir = 'test_inst_vibss.txt'
-    dataset = instruDataset(img_dir=img_dir)
+    #img_dir = '/media/mmlab/data/Datasets/Instruments/2017/test_mine.txt'
+    img_dir = '/media/mobarak/data/Datasets/Instruments/2017/test_mine.txt'
+    dataset = instruDataset(img_dir=img_dir, is_train=False)
     test_loader = DataLoader(dataset=dataset, batch_size=args['batch_size'], shuffle=False, num_workers=2)
     model = InstrumentsMFF(n_classes=args['num_class'])
     gpu_ids = range(args['num_gpus'])
@@ -76,7 +76,8 @@ if __name__ == '__main__':
 
     for epochs in range(76, 77):
         args['snapshot'] = 'epoch_' + str(epochs) + '.pth.tar'
-        model.load_state_dict(torch.load(os.path.join(args['ckpt_dir'],args['snapshot'])))
+        #model.load_state_dict(torch.load(os.path.join(args['ckpt_dir'],args['snapshot']))) # test all ckpts
+        model.load_state_dict(torch.load(os.path.join(args['snapshot']))) # test on final trained model
         model.eval()
         w, h = 0, args['num_class']
         mdice = [[0 for x in range(w)] for y in range(h)]

@@ -7,8 +7,8 @@ from torch.utils.data import Dataset, DataLoader
 
 
 class instruDataset(Dataset):
-    def __init__(self, img_dir, transform=None):
-        self.transform = transform
+    def __init__(self, img_dir, is_train=None):
+        self.is_train = is_train
         idx = 0
         file_img = open(img_dir, 'r')
         self.img_anno_pairs = {}
@@ -26,10 +26,11 @@ class instruDataset(Dataset):
         # _img = Image.open(self.img_anno_pairs[index][:-26] + 'images/' + os.path.basename(
         #     self.img_anno_pairs[index]) + '.jpg').convert('RGB')
         # _target = Image.open(self.img_anno_pairs[index] + '.png')
-        hflip = random.random() < 0.5
-        if hflip:
-            _img = _img.transpose(Image.FLIP_LEFT_RIGHT)
-            _target = _target.transpose(Image.FLIP_LEFT_RIGHT)
+        if self.is_train:
+            hflip = random.random() < 0.5
+            if hflip:
+                _img = _img.transpose(Image.FLIP_LEFT_RIGHT)
+                _target = _target.transpose(Image.FLIP_LEFT_RIGHT)
 
         _img = torch.from_numpy(np.array(_img).transpose(2,0,1)).float()
         _target_main = torch.from_numpy(np.array(_target)).long()
