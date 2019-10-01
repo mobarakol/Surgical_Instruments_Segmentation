@@ -14,12 +14,12 @@ import torch.nn.functional as F
 from instruments_data2017.instruments_data import instruDataset
 from model import InstrumentsMFF
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 args = {
     'num_class': 8,
-    'num_gpus': 3,
+    'num_gpus': 2,
     'num_epoch': 200,
-    'batch_size': 12,
+    'batch_size': 6,
     'lr': 0.0001,
     'lr_decay': 0.9,
     'w_decay': 1e-4,

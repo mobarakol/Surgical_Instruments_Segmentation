@@ -51,27 +51,6 @@ class multiresolutionFeatureFusion(nn.Module):
         return high_fused_fm, mff_cls
 
 
-class spatialPyramidPooling(nn.Module):
-    def __init__(self, pool_sizes=[16, 8, 4, 2]):
-        super(spatialPyramidPooling, self).__init__()
-        self.poolsizes = pool_sizes
-
-    def forward(self, x):
-        h, w = x.shape[2:]
-        kernel_sizes = []
-        strides = []
-        for pool_size in self.poolsizes:
-            kernel_sizes.append((int(h / pool_size), int(w / pool_size)))
-            strides.append((int(h / pool_size), int(w / pool_size)))
-
-        pp_sum = x
-        for i in range(len(self.poolsizes)):
-            out = F.avg_pool2d(x, kernel_sizes[i], stride=strides[i], padding=0)
-            out = F.upsample(out, size=(h, w), mode="bilinear")
-            pp_sum = pp_sum + out
-
-        return pp_sum
-
 class Decoder(nn.Module):
 
     def __init__(self, in_planes, out_planes, kernel_size, stride=1, padding=0, output_padding=0, groups=1, bias=False):
@@ -94,6 +73,30 @@ class Decoder(nn.Module):
         x = self.conv2(x)
 
         return x
+
+
+class spatialPyramidPooling(nn.Module):
+    def __init__(self, pool_sizes):
+        super(spatialPyramidPooling, self).__init__()
+        self.pool_sizes = pool_sizes
+
+    def forward(self, x):
+        h, w = x.shape[2:]
+        k_sizes = []
+        strides = []
+        for pool_size in self.pool_sizes:
+            k_sizes.append((int(h / pool_size), int(w / pool_size)))
+            strides.append((int(h / pool_size), int(w / pool_size)))
+
+        pp_sum = x
+
+        for i in range(len(self.pool_sizes)):
+            out = F.avg_pool2d(x, k_sizes[i], stride=strides[i], padding=0)
+            out = F.upsample(out, size=(h, w), mode="bilinear")
+            pp_sum = pp_sum + out
+
+        return pp_sum
+
 
 class InstrumentsMFF(nn.Module):
 

@@ -15,13 +15,11 @@ from skimage.io import imread, imsave
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
 import torch
-import torchvision.transforms as standard_transforms
-from torchvision.models import resnet18
 from model import InstrumentsMFF
 from torchsummary import summary
+from instruments_data2017.instruments_data import instruDataset
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-ckpt_path = './ckpt'
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 args = {
     'exp_name': 'instruments-instru',
@@ -29,6 +27,7 @@ args = {
     'num_class': 8,
     'batch_size':1,
     'num_gpus':1,
+    'ckpt_dir': 'ckpt/instruments-instru/',
 }
 def HausdorffDist(A,B):
     D_mat = np.sqrt(inner1d(A, A)[np.newaxis].T + inner1d(B, B) - 2 * (np.dot(A, B.T)))
@@ -59,34 +58,12 @@ def spec_sens(pred, gt):
     specificity = TN / (FP + TN)
     sensitivity = TP / (TP + FN)
     return specificity, sensitivity
-class instruDataset_test(Dataset):
-    def __init__(self, img_dir, transform=None):
-        self.transform = transform
-        idx = 0
-        file_img = open(img_dir, 'r')
-        self.img_anno_pairs = {}
-        for line in file_img:
-            self.img_anno_pairs[idx] = line[0:-1]
-            idx = idx + 1
 
-    def __len__(self):
-        return len(self.img_anno_pairs)
-
-    def __getitem__(self, index):
-        # _img = Image.open(self.img_anno_pairs[index] + '.jpg').convert('RGB')
-        # _target = Image.open(self.img_anno_pairs[index][:-15] + 'instruments_masks/'
-        #                      + os.path.basename(self.img_anno_pairs[index]) + '.png')
-        _target = Image.open(self.img_anno_pairs[index] + '.png')
-        _img = Image.open(self.img_anno_pairs[index][:-26] + 'images/' + os.path.basename(
-            self.img_anno_pairs[index]) + '.jpg').convert('RGB')
-        _target = torch.from_numpy(np.array(_target)).long()
-        _img = torch.from_numpy(np.array(_img).transpose(2, 0, 1)).float()
-        return _img, _target, self.img_anno_pairs[index]
 
 if __name__ == '__main__':
-    #img_dir = '/media/mmlab/data/Datasets/Instruments/2017/test_mine.txt'
-    img_dir = 'test_inst_vibss.txt'
-    dataset = instruDataset_test(img_dir=img_dir)
+    img_dir = '/media/mmlab/data/Datasets/Instruments/2017/test_mine.txt'
+    #img_dir = 'test_inst_vibss.txt'
+    dataset = instruDataset(img_dir=img_dir)
     test_loader = DataLoader(dataset=dataset, batch_size=args['batch_size'], shuffle=False, num_workers=2)
     model = InstrumentsMFF(n_classes=args['num_class'])
     gpu_ids = range(args['num_gpus'])
@@ -97,9 +74,9 @@ if __name__ == '__main__':
     Best_Dice = 0
     Best_epoch=0
 
-    for epochs in range(85, 86):
+    for epochs in range(76, 77):
         args['snapshot'] = 'epoch_' + str(epochs) + '.pth.tar'
-        model.load_state_dict(torch.load(os.path.join(ckpt_path, args['exp_name'], args['snapshot'])))
+        model.load_state_dict(torch.load(os.path.join(args['ckpt_dir'],args['snapshot'])))
         model.eval()
         w, h = 0, args['num_class']
         mdice = [[0 for x in range(w)] for y in range(h)]
@@ -119,8 +96,8 @@ if __name__ == '__main__':
                 mytime.append((t1 - t0))
                 img_pred = outputs.data.max(1)[1].squeeze_(1).cpu().numpy()
                 labels = np.array(labels)
-                labels[labels>0] = 1
-                img_pred[img_pred > 0] = 1
+                # labels[labels>0] = 1
+                # img_pred[img_pred > 0] = 1
                 for dice_idx in range(0,img_pred.shape[0]):
                     cc = cc + 1
                     if(np.max(labels[dice_idx])==0):
@@ -134,10 +111,10 @@ if __name__ == '__main__':
                         if (np.max(labels_temp) == 0):# or (np.max(img_pred_temp)==0):
                             continue
                         mdice[labs[instru_idx]].append(dice(img_pred_temp, labels_temp))
-                        mhausdorff[labs[instru_idx]].append(directed_hausdorff(img_pred_temp, labels_temp)[0])
-                        spec, sens = spec_sens(img_pred_temp, labels_temp)
-                        mspecificity[labs[instru_idx]].append(spec)
-                        msensitivity[labs[instru_idx]].append(sens)
+                        # mhausdorff[labs[instru_idx]].append(directed_hausdorff(img_pred_temp, labels_temp)[0])
+                        # spec, sens = spec_sens(img_pred_temp, labels_temp)
+                        # mspecificity[labs[instru_idx]].append(spec)
+                        # msensitivity[labs[instru_idx]].append(sens)
 
 
 
@@ -146,15 +123,15 @@ if __name__ == '__main__':
         avg_spec = []
         avg_sens = []
         for idx_eval in range(1, args['num_class']):
-            #if idx_eval == 2 or idx_eval == 3 or idx_eval == 7:# or math.isnan(float(np.mean(mdice[idx_eval]))):
-            if idx_eval == 3 or idx_eval == 4 or idx_eval == 5 or idx_eval == 6 or math.isnan(
-                        float(np.mean(mdice[idx_eval]))):
+            if idx_eval == 2 or idx_eval == 3 or idx_eval == 7:# or math.isnan(float(np.mean(mdice[idx_eval]))):
+            # if idx_eval == 3 or idx_eval == 4 or idx_eval == 5 or idx_eval == 6 or math.isnan(
+            #             float(np.mean(mdice[idx_eval]))):
                 mdice[idx_eval] = 0
                 continue
             avg_dice.append(np.mean(mdice[idx_eval]))
-            avg_hd.append(np.mean(mhausdorff[idx_eval]))
-            avg_spec.append(np.mean(mspecificity[idx_eval]))
-            avg_sens.append(np.mean(msensitivity[idx_eval]))
+            # avg_hd.append(np.mean(mhausdorff[idx_eval]))
+            # avg_spec.append(np.mean(mspecificity[idx_eval]))
+            # avg_sens.append(np.mean(msensitivity[idx_eval]))
 
         if np.mean(avg_dice) > Best_Dice:
             Best_Dice = np.mean(avg_dice)
@@ -163,8 +140,8 @@ if __name__ == '__main__':
         print(str(cc), str(epochs) + ' Mean Dice:' + str(np.mean(avg_dice)) +' Each:'+ str(avg_dice) +'   Best='+str(Best_epoch)+':'+str(Best_Dice))
 
 
-        print(str(epochs), ' Mean Dice:', str(np.mean(avg_dice)), ' Each:', str(avg_dice),'\n',
-              ' Mean Hausdorff:', str(np.mean(avg_hd)), ' Each:', str(avg_hd), '\n',
-              ' Mean Specificity:', str(np.mean(avg_spec)), ' Each:', str(avg_spec), '\n',
-              ' Mean Sensitivity:', str(np.mean(avg_sens)), ' Each:', str(avg_sens), '\n',
-              'Avg Time(ms):', np.mean(mytime) * 1000, 'fps:', (1.0 / np.mean(mytime)))
+        # print(str(epochs), ' Mean Dice:', str(np.mean(avg_dice)), ' Each:', str(avg_dice),'\n',
+        #       ' Mean Hausdorff:', str(np.mean(avg_hd)), ' Each:', str(avg_hd), '\n',
+        #       ' Mean Specificity:', str(np.mean(avg_spec)), ' Each:', str(avg_spec), '\n',
+        #       ' Mean Sensitivity:', str(np.mean(avg_sens)), ' Each:', str(avg_sens), '\n',
+        #       'Avg Time(ms):', np.mean(mytime) * 1000, 'fps:', (1.0 / np.mean(mytime)))
