@@ -17,3 +17,22 @@ Validation Set: 7,8
 
 ### Results: Binary Prediction
 <img align='center' style="border-color:gray;border-width:2px;border-style:dashed"   src='figures/results.png' padding='5px' height="600px"></img>
+
+## Acknowledgement
+The adversarial learning part is adopted from this [repository](https://github.com/hfslyc/AdvSemiSeg)
+
+## Citation
+If you use this code for your research, please cite our paper.
+
+```
+@article{islam2019real,
+  title={Real-time instrument segmentation in robotic surgery using auxiliary supervised deep adversarial learning},
+  author={Islam, Mobarakol and Atputharuban, Daniel Anojan and Ramesh, Ravikiran and Ren, Hongliang},
+  journal={IEEE Robotics and Automation Letters},
+  volume={4},
+  number={2},
+  pages={2188--2195},
+  year={2019},
+  publisher={IEEE}
+}
+```
